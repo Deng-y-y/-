@@ -5,11 +5,7 @@
 ## 二、实验内容
 ### 1、Anaconda基础校验
 Anaconda软件预先完成安装，在终端执行命令校验conda版本与基础配置参数，确认软件运行正常。
-```powershell
-(base) PS C:\Users\25678\Desktop> conda --version
-conda 25.5.1
-(base) PS C:\Users\25678\Desktop> conda config --show
-```
+
 执行输出查看conda各项配置项，确认镜像、更新策略等参数无误。
 
 ### 2、虚拟环境创建与OpenCV库部署
