@@ -16,9 +16,7 @@ Anaconda软件预先完成安装，在终端执行命令校验conda版本与基�
 > 说明：本机使用Intel核显，无NVIDIA独立显卡，不支持CUDA硬件加速，不需要安装CUDA与cuDNN。
 
 ### 3、PyTorch（CPU版本）框架安装
-至PyTorch官网选择对应版本进行下载，页面如下：
-
-conda list pytorch 可以看到已经成功安装，信息如下：
+至PyTorch官网选择对应版本进行下载，使用 conda list pytorch 语句可以看到已经成功安装，信息如下：
 ![conda基础校验输出](../assets/1.3.png)
 
 ### 5、PyTorch环境有效性验证
