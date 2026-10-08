@@ -21,7 +21,7 @@ Anaconda软件预先完成安装，在终端执行命令校验conda版本与基�
 
 ### 5、PyTorch环境有效性验证
 进入Python交互环境执行验证代码：
-
+![conda基础校验输出](../assets/1.4.png)
 > 输出版本号与`False`，CPU版本PyTorch验证通过。
 
 ## 三、实验总结
