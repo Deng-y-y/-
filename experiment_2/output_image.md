@@ -1,27 +1,22 @@
-# output_image 图像说明
-> 本文件夹存放实验第二部分：图像读取、色彩空间转换、添加噪声生成的输出图像。
+# 图像输出说明（色彩转换 & 噪声添加）
+> 本文件为实验2图像结果说明，图像资源存放在项目 assets 目录
 
-## 文件列表说明
-1. `bgr_image.jpg`：OpenCV直接读取的原始BGR格式图像，直接matplotlib显示红蓝通道反转。
-2. `rgb_image.jpg`：BGR转换为RGB之后的彩色图像，色彩符合人眼正常观察。
-3. `gray_image.jpg`：BGR转灰度图像，单通道，只保留亮度信息。
-4. `noise_comparison.jpg`：原图、椒盐噪声、高斯噪声三图对比。
+## 文件说明
+1. `bgr_image.jpg`：OpenCV原生读取BGR格式图像，直接用matplotlib展示会红蓝通道颠倒
+2. `rgb_image.jpg`：BGR转RGB后的彩色图像，色彩正常
+3. `gray_image.jpg`：灰度转换结果，仅保留亮度信息
+4. `noise_comparison.jpg`：原图、椒盐噪声、高斯噪声对比图
 
 ## 效果图展示
+![BGR原始图像](../assets/bgr_image.jpg)
 
-### BGR原始图像
-![bgr_image.jpg](bgr_image.jpg)
+![RGB图像](../assets/rgb_image.jpg)
 
-### BGR转RGB图像
-![rgb_image.jpg](rgb_image.jpg)
+![灰度图像](../assets/gray_image.jpg)
 
-### 灰度图像
-![gray_image.jpg](gray_image.jpg)
+![噪声对比图](../assets/noise_comparison.jpg)
 
-### 噪声对比：原图｜椒盐噪声｜高斯噪声
-![noise_comparison.jpg](noise_comparison.jpg)
-
-## 简要说明
-OpenCV默认读取图像为BGR通道顺序，matplotlib按照RGB解析，因此直接显示会出现红蓝颜色颠倒。
-- 椒盐噪声：`mode='s&p', amount=0.4`，40%像素被黑白噪点污染。
-- 高斯噪声：`mode='gaussian', mean=0.2, var=0.03`，像素叠加高斯随机扰动。
+## 简要原理
+OpenCV默认读取顺序是BGR，matplotlib按照RGB解析，直接显示会颜色错乱。
+- 椒盐噪声：随机将像素置0/255，适合用中值滤波处理
+- 高斯噪声：像素叠加正态分布随机扰动，适合高斯/均值滤波平滑
