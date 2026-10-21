@@ -25,10 +25,3 @@
 OpenCV默认读取图像为BGR通道顺序，matplotlib按照RGB解析，因此直接显示会出现红蓝颜色颠倒。
 - 椒盐噪声：`mode='s&p', amount=0.4`，40%像素被黑白噪点污染。
 - 高斯噪声：`mode='gaussian', mean=0.2, var=0.03`，像素叠加高斯随机扰动。
-![原始BGR图像](output_image/original_bgr.jpg)
-
-![RGB图像](output_image/rgb_image.jpg)
-
-![灰度图](output_image/gray_image.jpg)
-
-![噪声对比图](output_image/noise_comparison.jpg)
