@@ -4,31 +4,9 @@
 ## 一、实验目的
 学会OpenCV的基本使用方法，利用OpenCV等计算机库对图像进行平滑、滤波等操作，实现图像增强，理解BGR/RGB色彩空间差异、噪声类型特点以及不同滤波算法的原理与适用场景。
 
-## 二、实验环境
-- Python 3.x
-- 依赖库
-  - `opencv-python`：图像处理
-  - `scikit-image`：使用`random_noise`实现图像噪声添加
-  - `numpy`：科学数值计算
-  - `matplotlib`：图像绘图与可视化
-- 运行载体：Jupyter Notebook（Untitled.ipynb），conda虚拟环境
-
-### 项目文件结构
-```
-
-.
-├─ assets/                 # 存放全部输出效果图
-└─ experiment_2/
-├─ README.md            # 实验总说明文档
-├─ Untitled.ipynb       # 完整实验代码
-├─ output_image.md      # 色彩转换、噪声结果说明
-└─ result.md            # 滤波实验结果说明
-
-```
-
-## 三、实验内容
+## 二、实验内容
 完整可运行代码见本目录：[Untitled.ipynb](./Untitled.ipynb)
-### 3.1 导入依赖包
+### 2.1 导入依赖包
 ```python
 import cv2
 from skimage.util import random_noise
@@ -36,7 +14,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 ```
 
-### 3.2 读取原始图像并进行色彩空间转换
+### 2.2 读取原始图像并进行色彩空间转换
 
 读取本地图像，获取坐标`(100,100)`位置像素 BGR 数值，完成 BGR→RGB、BGR→GRAY 色彩空间转换。
 
@@ -53,10 +31,7 @@ gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 输出像素结果：`82 86 241`
 
-> 
-> 色彩转换与噪声图像详情展示：[output_image.md](./output_image.md)
-
-### 3.3 添加噪声
+### 2.3 添加噪声
 
 对 RGB 图像分别添加椒盐噪声与高斯噪声：
 
@@ -67,6 +42,9 @@ gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 sp_noise_img = random_noise(rgb_img, mode='s&p', amount=0.4)
 gus_noise_img = random_noise(rgb_img, mode='gaussian', mean=0.2, var=0.03)
 ```
+
+> 
+> 色彩转换与噪声图像详情展示：[output_image.md](./output_image.md)
 
 ### 3.4 图像滤波
 
