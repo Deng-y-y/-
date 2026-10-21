@@ -46,7 +46,7 @@ gus_noise_img = random_noise(rgb_img, mode='gaussian', mean=0.2, var=0.03)
 > 
 > 色彩转换与噪声图像详情展示：[output_image.md](./output_image.md)
 
-### 3.4 图像滤波
+### 2.4 图像滤波
 
 使用 OpenCV 的均值滤波、中值滤波、高斯滤波分别对两种噪声图像做去噪。
 
@@ -64,7 +64,7 @@ gauss_sp = cv2.GaussianBlur((sp_noise_img*255).astype(np.uint8), (5, 5), 0)
 gauss_gus = cv2.GaussianBlur((gus_noise_img*255).astype(np.uint8), (5, 5), 0)
 ```
 
-### 3.5 手动实现彩色图像中值滤波
+### 2.5 手动实现彩色图像中值滤波
 
 不调用 OpenCV 滤波接口，对 R、G、B 三通道分别进行滑动窗口处理，取窗口内像素中位数完成去噪。
 
@@ -87,13 +87,8 @@ manual_mid = manual_median_filter_color((sp_noise_img * 255).astype(np.uint8), k
 > 
 > 滤波效果详情查看：[result.md](./result.md)
 
-## 四、实验图像快速预览
 
-色彩转换与噪声效果：
-
-滤波对比效果：
-
-## 五、实验结果与分析
+## 三、实验结果与分析
 
 1. **原始图像与颜色空间转换**
 OpenCV 默认读取图像为 BGR 格式，直接使用 matplotlib 展示会出现红蓝通道反转；转换为 RGB 后色彩符合人眼视觉；灰度图像舍弃彩色信息只保留亮度。
@@ -118,7 +113,7 @@ OpenCV 默认读取图像为 BGR 格式，直接使用 matplotlib 展示会出�
 > - 椒盐噪声：优先选用**中值滤波**
 > - 高斯噪声：优先选用**均值滤波 / 高斯滤波**
 
-## 六、实验小结
+## 四、实验小结
 
 本实验在 Jupyter Notebook 中完成图像读取、BGR-RGB 色彩转换、添加椒盐与高斯噪声，使用多种滤波器完成图像去噪，同时手动实现彩色图像中值滤波。通过实验直观观察不同噪声的特点以及各类滤波器的适用场景，加深了对图像平滑滤波算法原理的理解，掌握 OpenCV 基础图像读写与变换操作。
 
