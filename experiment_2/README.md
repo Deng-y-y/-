@@ -5,7 +5,7 @@
 学会OpenCV的基本使用方法，利用OpenCV等计算机库对图像进行平滑、滤波等操作，实现图像增强，理解BGR/RGB色彩空间差异、噪声类型特点以及不同滤波算法的原理与适用场景。
 
 ## 二、实验内容
-完整可运行代码见本目录：[Untitled.ipynb](./Untitled.ipynb)
+完整可运行代码见本目录：[Untitled (1).ipynb](./Untitled (1).ipynb)
 ### 2.1 导入依赖包
 ```python
 import cv2
@@ -119,6 +119,6 @@ OpenCV 默认读取图像为 BGR 格式，直接使用 matplotlib 展示会出�
 
 ## 相关文档跳转
 
-- 完整实验代码：[Untitled.ipynb](./Untitled.ipynb)
+- 完整实验代码：[Untitled.ipynb](./Untitled (1))
 - 色彩转换、噪声效果图详情：[output_image.md](./output_image.md)
 - 滤波去噪结果详情：[result.md](./result.md)
