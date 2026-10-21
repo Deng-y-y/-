@@ -8,10 +8,10 @@
 ## 效果图展示
 
 ### OpenCV三种滤波效果对比
-![filter_result.jpg](filter_result.jpg)
+![三种滤波对比图](../assets/filter_result.jpg)
 
 ### 手动实现彩色中值滤波效果
-![manual_median.jpg](manual_median.jpg)
+![手写中值滤波效果图](../assets/manual_median.jpg)
 
 ## 滤波简要分析
 1. **均值滤波**：适合高斯噪声，平滑图像；对椒盐噪声去除效果差，容易模糊边缘。
