@@ -8,12 +8,16 @@
 4. `noise_comparison.jpg`：原图、椒盐噪声、高斯噪声对比图
 
 ## 效果图展示
+### BGR原始图像
 ![BGR原始图像](../assets/bgr_image.jpg)
 
+### BGR转RGB图像
 ![RGB图像](../assets/rgb_image.jpg)
 
+### 灰度图像
 ![灰度图像](../assets/gray_image.jpg)
 
+### 噪声对比：原图｜椒盐噪声｜高斯噪声
 ![噪声对比图](../assets/noise_comparison.jpg)
 
 ## 简要原理
