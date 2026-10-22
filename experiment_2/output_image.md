@@ -1,26 +1,28 @@
-# 图像输出说明（色彩转换 & 噪声添加）
-> 本文件为实验2图像结果说明，图像资源存放在项目 assets 目录
+# 图像色彩转换与噪声添加结果图
+人工智能241 邓青阳 202410315030
 
-## 文件说明
-1. `bgr_image.jpg`：OpenCV原生读取BGR格式图像，直接用matplotlib展示会红蓝通道颠倒
-2. `rgb_image.jpg`：BGR转RGB后的彩色图像，色彩正常
-3. `gray_image.jpg`：灰度转换结果，仅保留亮度信息
-4. `noise_comparison.jpg`：原图、椒盐噪声、高斯噪声对比图
+本页面存放彩色图像读取、色彩空间转换、噪声添加环节的输出图像，对应实验2.2、2.3小节。
 
-## 效果图展示
-### BGR原始图像
-![BGR原始图像](../assets/bgr_image.jpg)
+## 1. BGR原始图像
+OpenCV默认以BGR通道顺序读取图片，直接用matplotlib展示会出现色彩偏移。
+- 像素采样位置：(100,100)
+- 采样结果：b: 23 g: 23 r: 39
 
-### BGR转RGB图像
-![RGB图像](../assets/rgb_image.jpg)
+![BGR原图](../assets/bgr_image.jpg)
 
-### 灰度图像
-![灰度图像](../assets/gray_image.jpg)
+## 2. RGB转换图像
+使用 `cv2.COLOR_BGR2RGB` 交换红蓝通道，适配matplotlib的RGB显示规则，还原图像真实色彩。
 
-### 噪声对比：原图｜椒盐噪声｜高斯噪声
+![RGB转换图](../assets/rgb_image.jpg)
+
+## 3. 灰度图像
+使用 `cv2.COLOR_BGR2GRAY` 转换为单通道灰度图，舍弃色彩信息，仅保留图像亮度信息。
+
+![灰度图](../assets/gray_image.jpg)
+
+## 4. 噪声对比图
+在RGB原图上分别添加椒盐噪声与高斯噪声，直观对比两类噪声形态差异。
+- 椒盐噪声：像素突变为0或255，呈现孤立黑白斑点；
+- 高斯噪声：叠加正态分布小幅扰动，画面整体带有均匀颗粒感。
+
 ![噪声对比图](../assets/noise_comparison.jpg)
-
-## 简要原理
-OpenCV默认读取顺序是BGR，matplotlib按照RGB解析，直接显示会颜色错乱。
-- 椒盐噪声：随机将像素置0/255，适合用中值滤波处理
-- 高斯噪声：像素叠加正态分布随机扰动，适合高斯/均值滤波平滑
