@@ -61,8 +61,7 @@ plt.savefig('output_images/gray_image.jpg', dpi=300)
 plt.show()
 ```
 
-灰度图：![RGB转换图](../assets/rgb_image.jpg)
-
+灰度图：![灰度图](../assets/gray_image.jpg)
 
 # 2.3 添加噪声
 
