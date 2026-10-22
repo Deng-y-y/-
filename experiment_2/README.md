@@ -33,7 +33,8 @@ plt.show()
 ```
 
 - 输出：b: 23 g: 23 r: 39
-原图：![BGR原图](./assets/bgr_image.jpg)
+
+原图：![BGR原图](../assets/bgr_image.jpg)
 
 
 接下来测试 OpenCV 的色彩空间转换功能。`cv2.cvtColor()`是专门用来切换图像色彩编码格式的函数，参数`cv2.COLOR_BGR2RGB`的作用是交换 B、R 两个通道的顺序。因为 OpenCV 默认以 BGR 顺序读取图片，而 Matplotlib 绘图按照 RGB 顺序解析色彩，不做转换直接展示会出现颜色错乱。
@@ -60,7 +61,8 @@ plt.savefig('output_images/gray_image.jpg', dpi=300)
 plt.show()
 ```
 
-灰度图：![灰度图](./assets/gray_image.jpg)
+灰度图：![RGB转换图](../assets/rgb_image.jpg)
+
 
 # 2.3 添加噪声
 
@@ -96,7 +98,7 @@ plt.savefig('output_images/noise_comparison.jpg', dpi=300)
 plt.show()
 ```
 
-噪声对比图：![噪声对比图](./assets/noise_comparison.jpg)
+噪声对比图：![噪声对比图](../assets/noise_comparison.jpg)
 
 # 2.4 图像滤波
 
@@ -150,7 +152,7 @@ plt.savefig('result/filter_result.jpg', dpi=300)
 plt.show()
 ```
 
-图像滤波对比图：![滤波结果图](./assets/filter_result.jpg)
+图像滤波对比图：![滤波结果图](../assets/filter_result.jpg)
 
 # 2.5 手动实现一个滤波方式（中值滤波）
 
@@ -187,7 +189,7 @@ plt.savefig('result/manual_median.jpg', dpi=300)
 plt.show()
 ```
 
-手动构建中值滤波效果图：![手写中值滤波图](./assets/manual_median.jpg)
+手动构建中值滤波效果图：![手写中值滤波图](../assets/manual_median.jpg)
 
 ## 四、实验小结
 
