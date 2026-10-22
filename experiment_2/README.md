@@ -48,7 +48,7 @@ plt.savefig('output_images/rgb_image.jpg', dpi=300)
 plt.show()
 ```
 
-色彩校正后的 RGB 图：![RGB转换图](./assets/rgb_image.jpg)
+色彩校正后的 RGB 图：![RGB转换图](../assets/rgb_image.jpg)
 
 `cv2.COLOR_BGR2GRAY`可以把彩色图转为灰度图像，将原本三通道的彩色信息压缩为单通道，只保留画面的明暗亮度信息，丢弃色彩数据。
 
