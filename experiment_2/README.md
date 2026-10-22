@@ -16,105 +16,177 @@ from matplotlib import pyplot as plt
 ```
 这里导入本次实验要用到的工具包，cv2 用来读取和处理图片，random_noise 用来给图片加噪声，numpy 用来做像素数值处理，matplotlib 用来画图展示图像。
 
-### 3.2 读取原始图像并进行色彩空间转换
+# 2.2 读取原始图像并进行色彩空间转换
+
+读取本地存储的图片文件，提取坐标`(100,100)`位置的 BGR 三通道像素值并打印。从运行输出可以看到，该位置像素的 BGR 数值为`[23, 23, 39]`，整体色调偏深，对应这张小马宝莉宣传海报左上角的深色背景区域。
 
 ```
-img = cv2.imread('../assets/jp1.jpg')
+# ====================读取原始图像=====================
+img = cv2.imread('p1.jpg')
+# 获取图像中【100，100】这个像素的bgr三色
 (b, g, r) = img[100, 100]
-print(b, g, r)
+print("b:", b, "g:", g, "r:", r)
+plt.imshow(img)
+plt.title('BGR Image')
+plt.savefig('output_images/bgr_image.jpg', dpi=300)
+plt.show()
+```
 
-# BGR转RGB
+- 输出：b: 23 g: 23 r: 39
+原图：![BGR原图](./assets/bgr_image.jpg)
+
+接下来测试 OpenCV 的色彩空间转换功能。`cv2.cvtColor()`是专门用来切换图像色彩编码格式的函数，参数`cv2.COLOR_BGR2RGB`的作用是交换 B、R 两个通道的顺序。因为 OpenCV 默认以 BGR 顺序读取图片，而 Matplotlib 绘图按照 RGB 顺序解析色彩，不做转换直接展示会出现颜色错乱。
+
+```
+# 转化成RGB
 rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-# BGR转灰度图
+plt.imshow(rgb_img)
+plt.title('RGB Image')
+plt.savefig('output_images/rgb_image.jpg', dpi=300)
+plt.show()
+```
+
+色彩校正后的 RGB 图：![RGB转换图](./assets/rgb_image.jpg)
+
+`cv2.COLOR_BGR2GRAY`可以把彩色图转为灰度图像，将原本三通道的彩色信息压缩为单通道，只保留画面的明暗亮度信息，丢弃色彩数据。
+
+```
+# 转换成灰度图
 gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+plt.imshow(gray_img, cmap='gray')
+plt.title('Gray Image')
+plt.savefig('output_images/gray_image.jpg', dpi=300)
+plt.show()
 ```
 
-读取本地图像文件，获取【100, 100】位置像素的 BGR 三个通道数值并打印输出。OpenCV 默认读出来的图片通道顺序是 BGR，不是我们常说的 RGB，所以要做转换。转换成 RGB 之后用 matplotlib 显示颜色才正常；转成灰度图之后图片就只剩下明暗信息，没有彩色。
-输出像素结果：`82 86 241`
+灰度图：![灰度图](./assets/gray_image.jpg)
 
-> 
-> 色彩转换与噪声图像详情展示：[output_image.md](./output_image.md)
+# 2.3 添加噪声
 
-### 2.3 添加噪声
+在已经完成通道校正的 RGB 原图上叠加两种典型图像噪声，方便后续对比滤波器效果。两种噪声的特点有明显区别：椒盐噪声是孤立的黑白噪点，在彩色图上会呈现零散的异色斑点；高斯噪声是叠加在所有像素上、服从正态分布的连续随机偏移，整体画面呈现均匀颗粒感。
 
 ```
-# 添加椒盐噪声
+# ==========================添加噪声=========================
+# mode='s&p'代表椒盐噪声，s代表白色噪点，p代表黑色噪点；amount=0.4代表整张图里40%像素会被噪声污染，彩色图上表现为杂乱的彩色斑点
 sp_noise_img = random_noise(rgb_img, mode='s&p', amount=0.4)
-# 添加高斯噪声
+# mode='gaussian'代表高斯噪声，给每个像素叠加正态分布随机量；本次调整均值、方差参数，放大噪声效果便于观察
 gus_noise_img = random_noise(rgb_img, mode='gaussian', mean=0.2, var=0.03)
-# 截断像素值，防止高斯噪声产生<0或>1的越界值，限制像素范围在[0,1]
+# 限制像素值范围在【0，1】之间，防止数值溢出
 sp_noise_img = np.clip(sp_noise_img,0,1)
 gus_noise_img = np.clip(gus_noise_img,0,1)
+
+plt.figure(figsize=(15,4))
+plt.subplot(1, 3, 1)
+plt.imshow(rgb_img)
+plt.title('Original Image')
+
+# 添加椒盐噪声
+plt.subplot(1, 3, 2)
+plt.imshow(sp_noise_img)
+plt.title('Salt & Pepper Noise')
+
+# 田间高斯噪声
+plt.subplot(1, 3, 3)
+plt.imshow(gus_noise_img)
+plt.title('Gaussian Noise')
+
+plt.tight_layout()
+plt.savefig('output_images/noise_comparison.jpg', dpi=300)
+plt.show()
 ```
 
-给彩色原图加上两种常见噪声。椒盐噪声会随机在画面生成黑白小点，这里设置有 40% 的像素会被噪声污染；高斯噪声是铺满整张图的细碎颗粒噪点。高斯噪声计算的时候，像素值有可能跑出 0~1 的范围，所以用 np.clip 把数值限制在合法区间，避免画图的时候颜色错乱。
+噪声对比图：![噪声对比图](./assets/noise_comparison.jpg)
 
-### 3.4 图像滤波
+# 2.4 图像滤波
+
+对上面生成的两种带噪图像，分别使用均值滤波、中值滤波、高斯滤波这三种空域滤波器处理，横向对比不同滤波器对不同噪声的适配能力。OpenCV 内置滤波函数要求输入图像为`uint8`类型，因此先把 0~1 区间的浮点图像映射回 0~255 并完成类型转换。
 
 ```
+# =========================图像滤波=============================
+# 所有cv滤波都用uint8，避免float运算溢出
+sp_noise_uint8 = np.clip(sp_noise_img*255,0,255).astype(np.uint8)
+gus_noise_uint8 = np.clip(gus_noise_img*255,0,255).astype(np.uint8)
+
 # 均值滤波
-mean_sp = cv2.blur(sp_noise_img, (5, 5))
-mean_gus = cv2.blur(gus_noise_img, (5, 5))
-
+mean_sp = cv2.blur(sp_noise_uint8, (5,5))
+mean_gus = cv2.blur(gus_noise_uint8, (5,5))
 # 中值滤波
-mid_sp = cv2.medianBlur((sp_noise_img*255).astype(np.uint8), 5)
-mid_gus = cv2.medianBlur((gus_noise_img*255).astype(np.uint8), 5)
-
+median_sp = cv2.medianBlur(sp_noise_uint8, 5)
+median_gus = cv2.medianBlur(gus_noise_uint8, 5)
 # 高斯滤波
-gauss_sp = cv2.GaussianBlur((sp_noise_img*255).astype(np.uint8), (5, 5), 0)
-gauss_gus = cv2.GaussianBlur((gus_noise_img*255).astype(np.uint8), (5, 5), 0)
+gauss_sp = cv2.GaussianBlur(sp_noise_uint8, (5,5), 0)
+gauss_gus = cv2.GaussianBlur(gus_noise_uint8, (5,5), 0)
+
+plt.figure(figsize=(16,10))
+# 第一行图片：椒盐噪声经过三种滤波
+plt.subplot(2,3,1)
+plt.imshow(sp_noise_uint8)
+plt.title('Salt & Pepper Noise')
+
+plt.subplot(2,3,2)
+plt.imshow(mean_sp)
+plt.title('Mean filter (salt‑pepper)')
+
+plt.subplot(2,3,3)
+plt.imshow(median_sp)
+plt.title('Median filter (salt‑pepper)')
+
+# 第二行图片：高斯噪声经过三种滤波
+plt.subplot(2,3,4)
+plt.imshow(gus_noise_uint8)
+plt.title('Gaussian Noise')
+
+plt.subplot(2,3,5)
+plt.imshow(mean_gus)
+plt.title('Mean filter (gaussian)')
+
+plt.subplot(2,3,6)
+plt.imshow(gauss_gus)
+plt.title('Gaussian filter (gaussian)')
+
+plt.tight_layout()
+plt.savefig('result/filter_result.jpg', dpi=300)
+plt.show()
 ```
 
-分别使用均值滤波、中值滤波、高斯滤波，对两种带噪声的图片做去噪处理，滤波窗口大小都设置为 5×5。均值滤波是取邻域像素平均值来平滑画面；中值滤波取邻域像素中间值，对付黑白噪点效果很好；高斯滤波给近处像素更高权重，画面会柔和地变平滑。
+图像滤波对比图：![滤波结果图](./assets/filter_result.jpg)
 
-### 3.5 手动实现彩色图像中值滤波
+# 2.5 手动实现一个滤波方式（中值滤波）
+
+不调用 OpenCV 现成的中值滤波接口，自己编写代码复现中值滤波算法逻辑。依次遍历图像每个像素，对 R、G、B 三个通道分开滑动 5×5 窗口，取窗口内像素的中位数作为输出像素值。最后将手写算法的结果和原始椒盐噪声图并排对照。
 
 ```
-def manual_median_filter_color(image, kernel_size=5):
+# ===========================手动实现中值滤波============================
+def my_median_filter(image, kernel_size=5):
+    h, w, c = image.shape
     pad = kernel_size // 2
-    filtered_img = np.zeros_like(image)
-    for c in range(3):
-        channel = image[:, :, c]
-        padded_channel = np.pad(channel, pad_width=pad, mode='edge')
-        for i in range(channel.shape[0]):
-            for j in range(channel.shape[1]):
-                region = padded_channel[i:i + kernel_size, j:j + kernel_size]
-                filtered_img[i, j, c] = np.median(region)
-    return filtered_img
+    pad_img = np.pad(image, ((pad,pad),(pad,pad),(0,0)), mode='edge')
+    out = np.zeros_like(image)
+    
+    for i in range(h):
+        for j in range(w):
+            for ch in range(c):
+                window = pad_img[i:i+kernel_size, j:j+kernel_size, ch]
+                out[i,j,ch] = np.median(window)
+    return out
 
-manual_mid = manual_median_filter_color((sp_noise_img * 255).astype(np.uint8), kernel_size=5)
+my_median_out = my_median_filter(sp_noise_uint8, kernel_size=5)
+
+plt.figure(figsize=(10,4))
+plt.subplot(1,2,1)
+plt.imshow(sp_noise_uint8)
+plt.title('Salt & Pepper Noise')
+
+plt.subplot(1,2,2)
+plt.imshow(my_median_out)
+plt.title('Manual Median Filter')
+
+plt.tight_layout()
+plt.savefig('result/manual_median.jpg', dpi=300)
+plt.show()
 ```
 
-不直接调用 OpenCV 自带的滤波函数，自己写代码实现中值滤波。彩色图有 R、G、B 三个通道，需要分开遍历每一个通道，用滑动窗口在图片上逐像素移动，取窗口里面像素的中位数作为新像素值，最后合成去噪后的彩色图，用来验证中值滤波的原理。
-
-> 
-> 滤波效果详情查看：[result.md](./result.md)
-
-
-## 三、实验结果与分析
-
-1. **原始图像与颜色空间转换**
-OpenCV 默认读取图像为 BGR 格式，直接使用 matplotlib 展示会出现红蓝通道反转；转换为 RGB 后色彩符合人眼视觉；灰度图像舍弃彩色信息只保留亮度。
-2. **噪声效果**
-
-- 椒盐噪声：随机产生黑白孤立噪点，局部破坏明显。
-- 高斯噪声：整张图像叠加服从高斯分布的随机扰动，画面布满细小颗粒。
-
-3. **滤波器对比**
-
-- 均值滤波：适合处理高斯噪声，平滑图像；对椒盐噪声去除效果差，容易模糊边缘。
-- 中值滤波：对椒盐噪声去除效果最好，能够保留边缘细节；对高斯噪声改善有限。
-- 高斯滤波：适合高斯噪声，平滑效果柔和；对椒盐噪声效果一般。
-
-4. **手动中值滤波**
-彩色图像需要分通道滤波，手写实现的中值滤波效果与 OpenCV 内置接口接近，验证滑动窗口取中值的算法原理。
-
-> 
-> 总结：
-> 
-> 
-> - 椒盐噪声：优先选用**中值滤波**
-> - 高斯噪声：优先选用**均值滤波 / 高斯滤波**
+手动构建中值滤波效果图：![手写中值滤波图](./assets/manual_median.jpg)
 
 ## 四、实验小结
 
