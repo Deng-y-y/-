@@ -35,6 +35,7 @@ plt.show()
 - 输出：b: 23 g: 23 r: 39
 原图：![BGR原图](./assets/bgr_image.jpg)
 
+
 接下来测试 OpenCV 的色彩空间转换功能。`cv2.cvtColor()`是专门用来切换图像色彩编码格式的函数，参数`cv2.COLOR_BGR2RGB`的作用是交换 B、R 两个通道的顺序。因为 OpenCV 默认以 BGR 顺序读取图片，而 Matplotlib 绘图按照 RGB 顺序解析色彩，不做转换直接展示会出现颜色错乱。
 
 ```
