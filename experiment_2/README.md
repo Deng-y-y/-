@@ -14,10 +14,9 @@ from skimage.util import random_noise
 import numpy as np
 from matplotlib import pyplot as plt
 ```
+这里导入本次实验要用到的工具包，cv2 用来读取和处理图片，random_noise 用来给图片加噪声，numpy 用来做像素数值处理，matplotlib 用来画图展示图像。
 
-### 2.2 读取原始图像并进行色彩空间转换
-
-读取本地图像，获取坐标`(100,100)`位置像素 BGR 数值，完成 BGR→RGB、BGR→GRAY 色彩空间转换。
+### 3.2 读取原始图像并进行色彩空间转换
 
 ```
 img = cv2.imread('../assets/jp1.jpg')
@@ -30,26 +29,27 @@ rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 ```
 
+读取本地图像文件，获取【100, 100】位置像素的 BGR 三个通道数值并打印输出。OpenCV 默认读出来的图片通道顺序是 BGR，不是我们常说的 RGB，所以要做转换。转换成 RGB 之后用 matplotlib 显示颜色才正常；转成灰度图之后图片就只剩下明暗信息，没有彩色。
 输出像素结果：`82 86 241`
-
-### 2.3 添加噪声
-
-对 RGB 图像分别添加椒盐噪声与高斯噪声：
-
-- 椒盐噪声：`mode='s&p', amount=0.4`，40% 像素被噪声污染
-- 高斯噪声：`mode='gaussian', mean=0.2, var=0.03`
-
-```
-sp_noise_img = random_noise(rgb_img, mode='s&p', amount=0.4)
-gus_noise_img = random_noise(rgb_img, mode='gaussian', mean=0.2, var=0.03)
-```
 
 > 
 > 色彩转换与噪声图像详情展示：[output_image.md](./output_image.md)
 
-### 2.4 图像滤波
+### 2.3 添加噪声
 
-使用 OpenCV 的均值滤波、中值滤波、高斯滤波分别对两种噪声图像做去噪。
+```
+# 添加椒盐噪声
+sp_noise_img = random_noise(rgb_img, mode='s&p', amount=0.4)
+# 添加高斯噪声
+gus_noise_img = random_noise(rgb_img, mode='gaussian', mean=0.2, var=0.03)
+# 截断像素值，防止高斯噪声产生<0或>1的越界值，限制像素范围在[0,1]
+sp_noise_img = np.clip(sp_noise_img,0,1)
+gus_noise_img = np.clip(gus_noise_img,0,1)
+```
+
+给彩色原图加上两种常见噪声。椒盐噪声会随机在画面生成黑白小点，这里设置有 40% 的像素会被噪声污染；高斯噪声是铺满整张图的细碎颗粒噪点。高斯噪声计算的时候，像素值有可能跑出 0~1 的范围，所以用 np.clip 把数值限制在合法区间，避免画图的时候颜色错乱。
+
+### 3.4 图像滤波
 
 ```
 # 均值滤波
@@ -65,9 +65,9 @@ gauss_sp = cv2.GaussianBlur((sp_noise_img*255).astype(np.uint8), (5, 5), 0)
 gauss_gus = cv2.GaussianBlur((gus_noise_img*255).astype(np.uint8), (5, 5), 0)
 ```
 
-### 2.5 手动实现彩色图像中值滤波
+分别使用均值滤波、中值滤波、高斯滤波，对两种带噪声的图片做去噪处理，滤波窗口大小都设置为 5×5。均值滤波是取邻域像素平均值来平滑画面；中值滤波取邻域像素中间值，对付黑白噪点效果很好；高斯滤波给近处像素更高权重，画面会柔和地变平滑。
 
-不调用 OpenCV 滤波接口，对 R、G、B 三通道分别进行滑动窗口处理，取窗口内像素中位数完成去噪。
+### 3.5 手动实现彩色图像中值滤波
 
 ```
 def manual_median_filter_color(image, kernel_size=5):
@@ -84,6 +84,8 @@ def manual_median_filter_color(image, kernel_size=5):
 
 manual_mid = manual_median_filter_color((sp_noise_img * 255).astype(np.uint8), kernel_size=5)
 ```
+
+不直接调用 OpenCV 自带的滤波函数，自己写代码实现中值滤波。彩色图有 R、G、B 三个通道，需要分开遍历每一个通道，用滑动窗口在图片上逐像素移动，取窗口里面像素的中位数作为新像素值，最后合成去噪后的彩色图，用来验证中值滤波的原理。
 
 > 
 > 滤波效果详情查看：[result.md](./result.md)
