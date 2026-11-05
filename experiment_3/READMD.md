@@ -63,6 +63,7 @@ match_img = cv2.drawMatches(img1, kp1, img2, kp2, good, None)
 使用 SIFT 算子检测关键点、计算 128 维描述子；采用 KNN 匹配（k=2），通过 Lowe 比率阈值 0.7 过滤错误匹配，绘制匹配连线。因为两张图尺寸不同，绘图函数会自动填充黑色背景补齐画布。
 
 > ![特征匹配图](../assets/matched_keypoints_1.jpg)
+> 
 > 图 5：SIFT 关键点匹配可视化，连线为经过 Lowe 筛选后的优质匹配对
 
 #### 2.1.4 图像拼接结果
@@ -77,6 +78,7 @@ H, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
 利用匹配点对，通过 RANSAC 鲁棒求解单应矩阵 H，剔除误匹配外点；对待拼接图像做透视变换，计算全景画布边界，平移坐标消除负边界，最后叠加两张图像完成拼接。
 
 > ![标准拼接结果](../assets/stitched_result_1.jpg)
+> 
 > 图 6：标准图像全景拼接融合结果
 
 ### 2.2 将图片尺寸对齐以后再进行实验
@@ -103,9 +105,11 @@ gray2 = cv2.cvtColor(img2_resize, cv2.COLOR_BGR2GRAY)
 读取图像后，将第二张图像缩放至和第一张图像相同的宽高，统一分辨率之后再转为灰度图，消除两张图尺寸差异带来的画布黑边。
 
 > ![对齐后彩色原图](../assets/input_rgb_aligned.jpg)
+> 
 > 图 3：resize 对齐分辨率后的彩色图
 
 > ![对齐后灰度图](../assets/input_gray_aligned.jpg)
+> 
 > 图 4：resize 对齐后的灰度图
 
 #### 2.2.3 SIFT 特征匹配结果
@@ -126,6 +130,7 @@ match_img = cv2.drawMatches(img1, kp1, img2_resize, kp2, good, None)
 使用和上一组完全一致的 SIFT 匹配参数，仅前置增加 resize 对齐步骤。图像分辨率一致后，匹配可视化画布不会出现大块黑色填充区域，画面更加整洁。
 
 > ![特征匹配图](../assets/matched_keypoints_2.jpg)
+> 
 > 图 5：SIFT 关键点匹配可视化，连线为经过 Lowe 筛选后的优质匹配对
 
 #### 2.2.4 图像拼接结果
@@ -139,6 +144,7 @@ H, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
 算法逻辑和未对齐组保持完全相同，保证单一变量，用来对比**尺寸是否对齐**对拼接效果、匹配可视化的影响。
 
 > ![标准拼接结果](../assets/stitched_result_2.jpg)
+> 
 > 图 6：标准图像全景拼接融合结果
 ## 6 结果分析
 1. **尺寸差异的影响**
