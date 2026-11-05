@@ -38,9 +38,11 @@ gray2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
 读取两张待拼接实景图像，保留两张图片原始分辨率，不进行 resize 操作，再转换为灰度图用于后续 SIFT 特征提取。
 
 > ![原始彩色原图](../assets/input_rgb_raw.jpg)
+> 
 > 图 1：原始彩色输入图，两张图像像素尺寸不一致
 
 > ![原始灰度图](../assets/input_gray_raw.jpg)
+> 
 > 图 2：原始灰度图，直接使用原图尺寸，未做 resize 对齐
 
 #### 2.1.3 SIFT 特征匹配结果
