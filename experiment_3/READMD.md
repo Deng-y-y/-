@@ -1,10 +1,6 @@
 # 基于SIFT特征的图像拼接实验报告
 ## 1 实验简介
 本实验基于SIFT尺度不变特征变换算法，完成两张存在重叠区域图像的特征提取、特征匹配、单应矩阵求解、透视变换与图像融合拼接。
-实验分为两组对照：
-- 对照组1：保留原图原始尺寸差异直接匹配拼接；
-- 对照组2：先resize对齐两张图片分辨率，再进行匹配拼接；
-额外测试：图像缩放、亮度衰减对SIFT特征匹配与拼接效果的影响。
 
 ## 2 实验原理
 ### 2.1 SIFT特征
@@ -44,36 +40,38 @@ $$
 
 ## 5 实验结果展示
 > 报告展示图片统一存放于项目根目录 `assets/`
-### 5.1 原始输入图（未对齐尺寸）
+### 5.1 未对齐图片尺寸
+### 5.1.1 原始输入图
 ![原始彩色原图](../assets/input_rgb_raw.jpg)
 > 图1：原始彩色输入图，两张图像像素尺寸不一致
-
 ![原始灰度图](../assets/input_gray_raw.jpg)
 > 图2：原始灰度图，直接使用原图尺寸，未做resize对齐
 
-### 5.2 尺寸对齐后输入图（resize对照）
+### 5.1.2 SIFT特征匹配结果
+![特征匹配图](../assets/matched_keypoints_1.jpg)
+> 图5：SIFT关键点匹配可视化，连线为经过Lowe筛选后的优质匹配对
+
+### 5.1.3 图像拼接结果
+![标准拼接结果](../assets/stitched_result_1.jpg)
+> 图6：标准图像全景拼接融合结果
+
+
+### 5.2 将图片尺寸对齐以后再进行实验
+### 5.2.1 原始输入图
 ![对齐后彩色原图](../assets/input_rgb_aligned.jpg)
 > 图3：resize对齐分辨率后的彩色图
 
 ![对齐后灰度图](../assets/input_gray_aligned.jpg)
 > 图4：resize对齐后的灰度图
 
-### 5.3 SIFT特征匹配结果
-![特征匹配图](../assets/matched_keypoints.jpg)
+### 5.2.2 SIFT特征匹配结果
+![特征匹配图](../assets/matched_keypoints_2.jpg)
 > 图5：SIFT关键点匹配可视化，连线为经过Lowe筛选后的优质匹配对
 
-### 5.4 图像拼接结果
-![标准拼接结果](../assets/stitched_result.jpg)
+### 5.1.3 图像拼接结果
+![标准拼接结果](../assets/stitched_result_2.jpg)
 > 图6：标准图像全景拼接融合结果
 
-### 5.5 拓展鲁棒性测试
-![缩放变化拼接](../assets/stitched_size_diff.jpg)
-> 图7：图像缩放变化后的拼接效果测试
-
-![亮度变化拼接](../assets/stitched_light_diff.jpg)
-> 图8：图像亮度降低后的拼接效果测试
-
-> 补充：stitched_result_cv.jpg 为opencv原生保存的无损备份图，放在result文件夹，不放入assets用于报告展示
 
 ## 6 结果分析
 1. **尺寸差异的影响**
