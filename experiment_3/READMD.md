@@ -13,7 +13,7 @@
 7. 可视化原图、灰度图、匹配图、拼接结果，代码输出文件保存至 `experiment_3/result/`；
 8. 拓展测试：图像缩小、亮度降低，观察匹配鲁棒性。
 
-完整可运行代码见本目录：[Untitled.ipynb](./Untitled.ipynb)
+完整可运行代码见本目录：[Untitled1.ipynb](./Untitled1.ipynb)
 > 报告展示图片统一存放于项目根目录 `assets/`
 
 ### 2.1 未对齐图片尺寸进行试验
