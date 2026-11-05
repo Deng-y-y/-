@@ -1,34 +1,9 @@
 # 基于SIFT特征的图像拼接实验报告
-## 1 实验简介
+## 一、实验简介
 本实验基于SIFT尺度不变特征变换算法，完成两张存在重叠区域图像的特征提取、特征匹配、单应矩阵求解、透视变换与图像融合拼接。
 
-## 2 实验原理
-### 2.1 SIFT特征
-SIFT可以提取图像上具有尺度、旋转不变性的关键点，每个关键点附带128维特征描述子，在图像缩放、明暗变化、轻微旋转下依然可以稳定匹配。
-算法流程：尺度空间构建 → 极值点检测 → 关键点精确定位 → 方向赋值 → 生成特征描述子。
-
-### 2.2 特征匹配
-采用暴力匹配器BFMatcher，使用KNN匹配（k=2），使用Lowe比率测试（0.7阈值）筛选优质匹配对，剔除错误匹配。
-
-### 2.3 单应矩阵 Homography
-单应矩阵 $H$ 描述两张平面图像之间的透视映射关系：
-$$
-\begin{bmatrix}x'\\y'\\1\end{bmatrix}
-= H
-\begin{bmatrix}x\\y\\1\end{bmatrix}
-$$
-使用RANSAC算法鲁棒求解H，剔除外点（误匹配）。
-
-### 2.4 透视变换与图像融合
-利用H将待拼接图像投影到基准图像坐标系，计算画布边界，平移画布消除负坐标，最后将两张图像叠加融合，得到全景拼接图。
-
-## 3 实验环境
-- Python 3
-- OpenCV（cv2）、NumPy、Matplotlib
-- Jupyter Notebook
-- 输入原图存放位置：`assets/`
-
-## 4 实验流程
+## 二、实验内容
+本次实验步骤包括：
 1. 读取两张原图，转为灰度图；
 2. 分支A：不改变尺寸，保留原始分辨率差异；分支B：resize对齐两张图分辨率；
 3. SIFT检测关键点，计算特征描述子；
@@ -38,11 +13,20 @@ $$
 7. 可视化原图、灰度图、匹配图、拼接结果，代码输出文件保存至 `experiment_3/result/`；
 8. 拓展测试：图像缩小、亮度降低，观察匹配鲁棒性。
 
-## 5 实验结果展示
+完整可运行代码见本目录：[Untitled.ipynb](./Untitled.ipynb)
 > 报告展示图片统一存放于项目根目录 `assets/`
 
-### 5.1 未对齐图片尺寸
-#### 5.1.1 原始输入图
+### 2.1 未对齐图片尺寸进行试验
+#### 2.1.1 导入依赖包
+```python
+import cv2
+from skimage.util import random_noise
+import numpy as np
+from matplotlib import pyplot as plt
+```
+这里导入本次实验要用到的工具包，cv2 用来读取和处理图片，random_noise 用来给图片加噪声，numpy 用来做像素数值处理，matplotlib 用来画图展示图像。
+
+#### 2.1.2 原始输入图
 ```python
 # 读取两张原图，不做尺寸对齐，转为灰度图
 img1 = cv2.imread("p1.jpg")
@@ -59,8 +43,7 @@ gray2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
 > ![原始灰度图](../assets/input_gray_raw.jpg)
 > 图 2：原始灰度图，直接使用原图尺寸，未做 resize 对齐
 
-#### 5.1.2 SIFT 特征匹配结果
-
+#### 2.1.3 SIFT 特征匹配结果
 ```
 # SIFT特征提取 + KNN匹配 + Lowe比率筛选
 sift = cv2.SIFT_create()
@@ -80,8 +63,7 @@ match_img = cv2.drawMatches(img1, kp1, img2, kp2, good, None)
 > ![特征匹配图](../assets/matched_keypoints_1.jpg)
 > 图 5：SIFT 关键点匹配可视化，连线为经过 Lowe 筛选后的优质匹配对
 
-#### 5.1.3 图像拼接结果
-
+#### 2.1.4 图像拼接结果
 ```
 # RANSAC求解单应矩阵 + 透视变换 + 图像融合
 src_pts = np.float32([kp2[m.trainIdx].pt for m in good]).reshape(-1,1,2)
@@ -95,10 +77,18 @@ H, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
 > ![标准拼接结果](../assets/stitched_result_1.jpg)
 > 图 6：标准图像全景拼接融合结果
 
-### 5.2 将图片尺寸对齐以后再进行实验
+### 2.2 将图片尺寸对齐以后再进行实验
 
-#### 5.2.1 原始输入图
+#### 2.1.1 导入依赖包
+```python
+import cv2
+from skimage.util import random_noise
+import numpy as np
+from matplotlib import pyplot as plt
+```
+这里导入本次实验要用到的工具包，cv2 用来读取和处理图片，random_noise 用来给图片加噪声，numpy 用来做像素数值处理，matplotlib 用来画图展示图像。
 
+#### 2.2.2 原始输入图
 ```
 # 读取原图，将两张图resize到相同分辨率
 img1 = cv2.imread("p1.jpg")
@@ -108,7 +98,6 @@ img2_resize = cv2.resize(img2, (w,h))
 gray1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
 gray2 = cv2.cvtColor(img2_resize, cv2.COLOR_BGR2GRAY)
 ```
-
 读取图像后，将第二张图像缩放至和第一张图像相同的宽高，统一分辨率之后再转为灰度图，消除两张图尺寸差异带来的画布黑边。
 
 > ![对齐后彩色原图](../assets/input_rgb_aligned.jpg)
@@ -117,8 +106,7 @@ gray2 = cv2.cvtColor(img2_resize, cv2.COLOR_BGR2GRAY)
 > ![对齐后灰度图](../assets/input_gray_aligned.jpg)
 > 图 4：resize 对齐后的灰度图
 
-#### 5.2.2 SIFT 特征匹配结果
-
+#### 2.2.3 SIFT 特征匹配结果
 ```
 # 同样的SIFT、KNN、Lowe筛选流程
 sift = cv2.SIFT_create()
@@ -138,8 +126,7 @@ match_img = cv2.drawMatches(img1, kp1, img2_resize, kp2, good, None)
 > ![特征匹配图](../assets/matched_keypoints_2.jpg)
 > 图 5：SIFT 关键点匹配可视化，连线为经过 Lowe 筛选后的优质匹配对
 
-#### 5.2.3 图像拼接结果
-
+#### 2.2.4 图像拼接结果
 ```
 # 单应矩阵求解、透视变换、图像融合流程不变
 src_pts = np.float32([kp2[m.trainIdx].pt for m in good]).reshape(-1,1,2)
