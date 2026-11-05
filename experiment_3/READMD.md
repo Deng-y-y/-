@@ -30,7 +30,7 @@ $$
 - Python 3
 - OpenCV（cv2）、NumPy、Matplotlib
 - Jupyter Notebook
-- 输入：p1.jpg、p2.jpg（两张存在重叠区域的实景照片）
+- 输入原图存放位置：`assets/`
 
 ## 4 实验流程
 1. 读取两张原图，转为灰度图；
@@ -39,41 +39,41 @@ $$
 4. KNN匹配 + Lowe阈值筛选优质匹配点；
 5. RANSAC求解单应矩阵H；
 6. 透视变换，计算全景画布大小，图像融合；
-7. 可视化原图、灰度图、匹配图、拼接结果，全部输出保存至result文件夹；
+7. 可视化原图、灰度图、匹配图、拼接结果，代码输出文件保存至 `experiment_3/result/`；
 8. 拓展测试：图像缩小、亮度降低，观察匹配鲁棒性。
 
 ## 5 实验结果展示
-> 所有输出图片存放于 `result/` 目录
+> 报告展示图片统一存放于项目根目录 `assets/`
 ### 5.1 原始输入图（未对齐尺寸）
-![原始彩色原图](result/input_rgb_raw.jpg)
+![原始彩色原图](../assets/input_rgb_raw.jpg)
 > 图1：原始彩色输入图，两张图像像素尺寸不一致
 
-![原始灰度图](result/input_gray_raw.jpg)
+![原始灰度图](../assets/input_gray_raw.jpg)
 > 图2：原始灰度图，直接使用原图尺寸，未做resize对齐
 
 ### 5.2 尺寸对齐后输入图（resize对照）
-![对齐后彩色原图](result/input_rgb_aligned.jpg)
+![对齐后彩色原图](../assets/input_rgb_aligned.jpg)
 > 图3：resize对齐分辨率后的彩色图
 
-![对齐后灰度图](result/input_gray_aligned.jpg)
+![对齐后灰度图](../assets/input_gray_aligned.jpg)
 > 图4：resize对齐后的灰度图
 
 ### 5.3 SIFT特征匹配结果
-![特征匹配图](result/matched_keypoints.jpg)
-> 图5：SIFT关键点匹配可视化，连线为筛选后的优质匹配对
+![特征匹配图](../assets/matched_keypoints.jpg)
+> 图5：SIFT关键点匹配可视化，连线为经过Lowe筛选后的优质匹配对
 
 ### 5.4 图像拼接结果
-![标准拼接结果](result/stitched_result.jpg)
+![标准拼接结果](../assets/stitched_result.jpg)
 > 图6：标准图像全景拼接融合结果
 
 ### 5.5 拓展鲁棒性测试
-![缩放变化拼接](result/stitched_size_diff.jpg)
+![缩放变化拼接](../assets/stitched_size_diff.jpg)
 > 图7：图像缩放变化后的拼接效果测试
 
-![亮度变化拼接](result/stitched_light_diff.jpg)
+![亮度变化拼接](../assets/stitched_light_diff.jpg)
 > 图8：图像亮度降低后的拼接效果测试
 
-> 补充：另外两张为opencv原生保存的无损拼接图：stitched_result_cv.jpg（不用于报告展示，作为原始备份）
+> 补充：stitched_result_cv.jpg 为opencv原生保存的无损备份图，放在result文件夹，不放入assets用于报告展示
 
 ## 6 结果分析
 1. **尺寸差异的影响**
@@ -88,4 +88,3 @@ $$
 ## 7 实验总结
 本次实验完成了SIFT特征提取、筛选匹配、单应矩阵求解、透视变换与图像拼接完整流程。
 对比了原图尺寸不一致和对齐尺寸两种方案的区别，验证了SIFT算法在光照、缩放扰动下的鲁棒性。理解了基于单应矩阵的平面图像拼接原理，同时认识到简单叠加融合方案的不足。
-
