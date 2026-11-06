@@ -5,6 +5,7 @@
 ## 二、实验内容
 完整可运行代码：[Untitled1.ipynb](./Untitled1.ipynb)   
 报告中的图片放在 `assets/`
+
 本次实验步骤包括：
 1. 读取两张原图，并转为灰度图；
 2. SIFT检测关键点，并使用KNN匹配和Lowe阈值筛选优质匹配点；
