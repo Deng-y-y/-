@@ -10,28 +10,29 @@
 1. 读取两张原图，并转为灰度图；
 2. SIFT检测关键点，并使用KNN匹配和Lowe阈值筛选优质匹配点；
 3. 图像拼接
+
 具体实验步骤如下：
 
-### 1 未对齐图片尺寸进行试验
+### 1 对两张尺寸大小不一样的图像进行拼接
 #### 1.1 导入依赖包
 ```python
 import cv2
-from skimage.util import random_noise
 import numpy as np
-from matplotlib import pyplot as plt
+import matplotlib.pyplot as plt
+import os
 ```
-这里导入本次实验要用到的工具包，cv2 用来读取和处理图片，random_noise 用来给图片加噪声，numpy 用来做像素数值处理，matplotlib 用来画图展示图像。
+这里导入本次实验要用到的工具包，cv2 用来读取和处理图片，numpy 用来做像素数值处理，matplotlib 用来画图展示图像。
 
 #### 1.2 读取图片并转为灰度图
 ```python
 # 读取两张原图，不做尺寸对齐，转为灰度图
-img1 = cv2.imread("p1.jpg")
-img2 = cv2.imread("p2.jpg")
-gray1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
-gray2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
+img_a = cv2.imread("p1.jpg")
+img_b = cv2.imread("p2.jpg")
+gray_a = cv2.cvtColor(img_a, cv2.COLOR_BGR2GRAY)
+gray_b = cv2.cvtColor(img_b, cv2.COLOR_BGR2GRAY)
 ```
 
-读取两张待拼接实景图像，保留两张图片原始分辨率，不进行 resize 操作，再转换为灰度图用于后续 SIFT 特征提取。
+读取两张待拼接实景图像，保留两张图片原始分辨率，再转换为灰度图用于后续 SIFT 特征提取。
 
 > ![原始彩色原图](../assets/input_rgb_raw.jpg)
 > 
@@ -43,17 +44,29 @@ gray2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
 
 #### 1.3  SIFT检测关键点，并使用KNN匹配和Lowe阈值筛选优质匹配点
 ```
-# SIFT特征提取 + KNN匹配 + Lowe比率筛选
+# SIFT特征提取
 sift = cv2.SIFT_create()
-kp1, des1 = sift.detectAndCompute(gray1, None)
-kp2, des2 = sift.detectAndCompute(gray2, None)
+kp_a, des_a = sift.detectAndCompute(gray_a, None)
+kp_b, des_b = sift.detectAndCompute(gray_b, None)
+# KNN匹配
 bf = cv2.BFMatcher()
-matches = bf.knnMatch(des1, des2, k=2)
-good = []
-for m,n in matches:
+matches = bf.knnMatch(des_a, des_b, k=2)
+# Lowe比率筛选
+good_matches = []
+for m, n in matches:
     if m.distance < 0.7 * n.distance:
-        good.append(m)
-match_img = cv2.drawMatches(img1, kp1, img2, kp2, good, None)
+        good_matches.append(m)
+# 输出匹配统计信息
+print("=== 特征匹配统计 ===")
+print(f"初始匹配点对数: {len(matches)}")
+print(f"筛选后优质匹配点对数: {len(good_matches)}")
+if len(matches) > 0:
+    print(f"优质匹配占比: {len(good_matches)/len(matches):.2%}")
+# 绘制对应关键点匹配情况
+matched_img = cv2.drawMatches(
+    img_a, kp_a, img_b, kp_b, good_matches,
+    None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS
+)
 ```
 
 使用 SIFT 算子检测关键点、计算 128 维描述子；采用 KNN 匹配（k=2），通过 Lowe 比率阈值 0.7 过滤错误匹配，绘制匹配连线。因为两张图尺寸不同，绘图函数会自动填充黑色背景补齐画布。
@@ -64,11 +77,16 @@ match_img = cv2.drawMatches(img1, kp1, img2, kp2, good, None)
 
 #### 1.4 图像拼接结果
 ```
-# RANSAC求解单应矩阵 + 透视变换 + 图像融合
-src_pts = np.float32([kp2[m.trainIdx].pt for m in good]).reshape(-1,1,2)
-dst_pts = np.float32([kp1[m.queryIdx].pt for m in good]).reshape(-1,1,2)
+# 使用RANSAC算法估计单应矩阵（透视变换矩阵）
 H, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
-# 透视变换画布计算、平移、叠加融合
+# 做透视变换，得到变换后四个角的位置
+pts = np.float32([[0,0],[0,h_b],[w_b,h_b],[w_b,0]]).reshape(-1,1,2)
+dst_corners = cv2.perspectiveTransform(pts, H)
+# 构造平移矩阵：因为透视变换后图像可能跑到负坐标，需要整体往右、往下平移，避免图片被裁掉
+trans_mat = np.array([[1,0,-x_min],[0,1,-y_min],[0,0,1]], dtype=np.float32)
+# 复合变换：对图像进行透视变换和平移
+fus_img = cv2.warpPerspective(img_b, trans_mat @ H, (x_max - x_min, y_max - y_min))
+
 ```
 
 利用匹配点对，通过 RANSAC 鲁棒求解单应矩阵 H，剔除误匹配外点；对待拼接图像做透视变换，计算全景画布边界，平移坐标消除负边界，最后叠加两张图像完成拼接。
@@ -82,21 +100,22 @@ H, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
 #### 2.1 导入依赖包
 ```python
 import cv2
-from skimage.util import random_noise
 import numpy as np
-from matplotlib import pyplot as plt
+import matplotlib.pyplot as plt
+import os
 ```
-这里导入本次实验要用到的工具包，cv2 用来读取和处理图片，random_noise 用来给图片加噪声，numpy 用来做像素数值处理，matplotlib 用来画图展示图像。
+这里导入本次实验要用到的工具包，cv2 用来读取和处理图片，numpy 用来做像素数值处理，matplotlib 用来画图展示图像。
+
 
 #### 2.2 读取图片并转为灰度图
 ```
 # 读取原图，将两张图resize到相同分辨率
-img1 = cv2.imread("p1.jpg")
-img2 = cv2.imread("p2.jpg")
-h,w = img1.shape[:2]
-img2_resize = cv2.resize(img2, (w,h))
-gray1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
-gray2 = cv2.cvtColor(img2_resize, cv2.COLOR_BGR2GRAY)
+img_a = cv2.imread("p1.jpg")
+img_b = cv2.imread("p2.jpg")
+h_a, w_a = img_a.shape[:2]
+img_b = cv2.resize(img_b, (w_a, h_a))
+gray_a = cv2.cvtColor(img_a, cv2.COLOR_BGR2GRAY)
+gray_b = cv2.cvtColor(img_b, cv2.COLOR_BGR2GRAY)
 ```
 读取图像后，将第二张图像缩放至和第一张图像相同的宽高，统一分辨率之后再转为灰度图，消除两张图尺寸差异带来的画布黑边。
 
@@ -112,15 +131,14 @@ gray2 = cv2.cvtColor(img2_resize, cv2.COLOR_BGR2GRAY)
 ```
 # 同样的SIFT、KNN、Lowe筛选流程
 sift = cv2.SIFT_create()
-kp1, des1 = sift.detectAndCompute(gray1, None)
-kp2, des2 = sift.detectAndCompute(gray2, None)
+kp_a, des_a = sift.detectAndCompute(gray_a, None)
+kp_b, des_b = sift.detectAndCompute(gray_b, None)
 bf = cv2.BFMatcher()
-matches = bf.knnMatch(des1, des2, k=2)
-good = []
-for m,n in matches:
+matches = bf.knnMatch(des_a, des_b, k=2)
+good_matches = []
+for m, n in matches:
     if m.distance < 0.7 * n.distance:
-        good.append(m)
-match_img = cv2.drawMatches(img1, kp1, img2_resize, kp2, good, None)
+        good_matches.append(m)
 ```
 
 使用和上一组完全一致的 SIFT 匹配参数，仅前置增加 resize 对齐步骤。图像分辨率一致后，匹配可视化画布不会出现大块黑色填充区域，画面更加整洁。
@@ -132,9 +150,11 @@ match_img = cv2.drawMatches(img1, kp1, img2_resize, kp2, good, None)
 #### 2.4 图像拼接结果
 ```
 # 单应矩阵求解、透视变换、图像融合流程不变
-src_pts = np.float32([kp2[m.trainIdx].pt for m in good]).reshape(-1,1,2)
-dst_pts = np.float32([kp1[m.queryIdx].pt for m in good]).reshape(-1,1,2)
 H, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
+pts = np.float32([[0,0],[0,h_b],[w_b,h_b],[w_b,0]]).reshape(-1,1,2)
+dst_corners = cv2.perspectiveTransform(pts, H)
+trans_mat = np.array([[1,0,-x_min],[0,1,-y_min],[0,0,1]], dtype=np.float32)
+fus_img = cv2.warpPerspective(img_b, trans_mat @ H, (x_max - x_min, y_max - y_min))
 ```
 
 算法逻辑和未对齐组保持完全相同，用来对比图片尺寸变化对拼接效果、匹配可视化的影响。
