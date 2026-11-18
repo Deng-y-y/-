@@ -188,7 +188,7 @@ print("---")
 正确样本数: 9316/10000
 ---
 ```
-![training curve baseline](../assets/training_curves (3).png
+![training curve baseline](../assets/training_curves (3).png)
 
 **代码分析**
 - `model.eval()`：切换为评估模式。
