@@ -35,8 +35,8 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 ```
 
 **代码分析**
-`batch_size=2048`全程固定，保证三组对照公平；优先使用 CUDA GPU 加速；所有模型、数据都转到同一 device，避免张量设备不匹配报错。
-
+- `batch_size = 2048`：设置批次大小，每一轮迭代同时送入 2048 个样本参与训练。
+- `device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')`：自动判断运行环境，优先使用 GPU 加速，无可用 GPU 时回退至 CPU 运算。
 ### 2.3 MNIST 数据集加载
 
 ```
