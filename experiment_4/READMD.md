@@ -188,7 +188,7 @@ print("---")
 正确样本数: 9316/10000
 ---
 ```
-![training curve baseline](../assets/training_curves (3).png)
+![training curve baseline](<../assets/training_curves (3).png>)
 
 **代码分析**
 - `model.eval()`：切换为评估模式。
@@ -244,7 +244,7 @@ print("训练完成!")
 正确样本数: 9397/10000
 ---
 ```
-![training curve 50epoch](../assets/training_curves (1).png)
+![training curve 50epoch](<../assets/training_curves (1).png>)
 
 ### 3.2 增大动量，其他数据不变
 **改变部分代码**：
@@ -294,12 +294,12 @@ print("训练完成!")
 正确样本数: 9727/10000
 ---
 ```
-![training curve momentum0.9](../assets/training_curves (2).png)
+![training curve momentum0.9](<../assets/training_curves (2).png>)
 
 ## 四、实验结果对比与分析
-![confusion matrix baseline](../assets/confusion_matrix (3).png)
-![confusion matrix 50epoch](../assets/confusion_matrix (1).png)
-![confusion matrix momentum0.9](../assets/confusion_matrix (2).png)
+![confusion matrix baseline](<../assets/confusion_matrix (3).png>)
+![confusion matrix 50epoch](<../assets/confusion_matrix (1).png>)
+![confusion matrix momentum0.9](<../assets/confusion_matrix (2).png>)
 - 1. momentum 均为 0，epoch 分别 30、50的实验结果相对比：同为朴素 SGD，延长训练轮次到 50 轮，准确率会有小幅提升，但提升幅度不大。说明仅靠增加训练 epoch 的方式效率很低，朴素 SGD 到达损失平台后很难继续优化。
 - 3. epoch 均为 30，momentum 分别 0、0.9的实验对比：训练轮次完全相同，加入动量之后收敛速度更快，同等训练轮数下测试准确率更高。验证 SGD 动量的作用：利用历史梯度的惯性加速下降、削弱震荡。动量带来的收益远大于单纯增加训练轮数。
 
