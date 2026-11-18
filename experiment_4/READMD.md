@@ -19,7 +19,13 @@ from torchvision import datasets, transforms
 ```
 
 **代码分析**
-`torch`提供张量运算；`nn`用于搭建 MLP；`F`提供 ReLU 激活、交叉熵损失；`optim`提供带 momentum 参数的 SGD 优化器；`torchvision`加载 MNIST 和做图像预处理；numpy、matplotlib 用于记录损失、绘制训练曲线，全程给三个训练分支共用。
+- **torch**：PyTorch 核心库，提供张量运算与自动求导功能。
+- **torch.nn**：神经网络模块，提供网络层、模型封装工具。
+- **torch.nn.functional**：函数式神经网络接口，提供 ReLU、交叉熵等运算。
+- **torch.optim**：优化器模块，实现 SGD、Adam 等参数更新算法。
+- **numpy**：数值计算库，用于保存损失数据。
+- **matplotlib.pyplot**：可视化库，绘制训练损失曲线。
+- **torchvision**：视觉工具库
 
 ### 2.2 超参数与设备配置
 
