@@ -37,92 +37,179 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 **代码分析**
 - `batch_size = 2048`：设置批次大小，每一轮迭代同时送入 2048 个样本参与训练。
 - `device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')`：自动判断运行环境，优先使用 GPU 加速，无可用 GPU 时回退至 CPU 运算。
+
 ### 2.3 MNIST 数据集加载
 
 ```
+transform = transforms.Compose([
+    transforms.ToTensor(),
+])
+# 数据加载
 train_loader = torch.utils.data.DataLoader(
-    datasets.MNIST('data', train=True, download=True,
-    transform=transforms.Compose([
-        transforms.ToTensor(),
-    ])),
-    batch_size=batch_size, shuffle=True)
+    datasets.MNIST('data', train=True, download=True, transform=transform),
+    batch_size=batch_size, shuffle=True
+)
 
 test_loader = torch.utils.data.DataLoader(
-    datasets.MNIST('data', train=False, transform=transforms.Compose([
-        transforms.ToTensor(),
-    ])),
-    batch_size=batch_size, shuffle=True)
+    datasets.MNIST('data', train=False, transform=transform),
+    batch_size=batch_size, shuffle=False
+)
 
 print("训练数据形状:", train_loader.dataset.data.shape)
-print("测试数据形式:", test_loader.dataset.data.shape)
+print("测试数据形状:", test_loader.dataset.data.shape)
+print("类别数量: 10 (数字0-9)")
+
 ```
 
 输出：
 
 ```
 训练数据形状: torch.Size([60000, 28, 28])
-测试数据形式: torch.Size([10000, 28, 28])
+测试数据形状: torch.Size([10000, 28, 28])
+类别数量: 10 (数字0‑9)
 ```
-
 **代码分析**
-MNIST 包含 60000 张训练样本、10000 张测试样本，28×28 灰度图。`ToTensor()`将像素归一化至 [0,1]；训练集开启 shuffle 打乱顺序，消除样本顺序带来的偏向。数据集与预处理对三个训练分支完全一致。
+- `datasets.MNIST`：加载 MNIST 手写数字数据集，MNIST 包含 60000 张训练样本、10000 张测试样本，28×28 灰度图。其中`train=True`为训练集，`train=False`为测试集。
+- `transforms.ToTensor()`：将图像像素归一化至 [0,1]，转为张量格式。
+- `DataLoader`：对数据集分批封装，`shuffle=True`打乱训练集样本顺序，避免顺序带来的学习偏差。
 
-### 2.4 基础 MLP 模型定义（三个训练分支共用）
+### 2.4 基础 MLP 模型定义
 
 ```
-class MLP(nn.Module):
+class mlp(nn.Module):
     def __init__(self):
-        super(MLP, self).__init__()
+        super(mlp, self).__init__()
         self.l1 = nn.Linear(784, 128)
         self.l2 = nn.Linear(128, 10)
 
     def forward(self, x):
-        a1 = self.l1(x)
-        x1 = F.relu(a1)
-        a2 = self.l2(x1)
-        x2 = a2
-        return x2
-```
+        x = F.relu(self.l1(x))
+        x = self.l2(x)
+        return x
 
+model = mlp().to(device)
+optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0)
+
+print("模型结构:")
+print(model)
+total_params = sum(p.numel() for p in model.parameters())
+print(f"\n总参数数量: {total_params:,}")
+
+```
 **代码分析**
-两层全连接 MLP：28×28 图片展平为 784 维向量输入，隐藏层 128 神经元，ReLU 激活；输出 10 维 logits，不使用额外 softmax，交给`F.cross_entropy`内部处理。三个训练分支网络结构完全不变，仅修改优化器 momentum 和 epoch。
+- `nn.Linear(784,128)`：第一层全连接层，将 28×28 展平后的 784 维向量映射至 128 维隐藏特征。
+- `nn.Linear(128,10)`：输出层，将隐藏特征映射为 10 个类别的得分。
+- `forward`：前向传播流程，隐藏层使用 ReLU 激活函数，输出层不添加激活，交由交叉熵损失处理。
+- `optim.SGD(..., momentum=0)`：朴素 SGD 优化器，无动量，参数更新仅依赖当前批次梯度。
 
-## 三、训练过程（内含三个对照分支）
-
-> 
-> 说明：三个分支独立训练，网络结构、lr=0.1、batch_size 全部固定，仅调整 epoch 和 momentum。
-
-### 分支 1：epoch=30，SGD momentum=0（基准组）
+### 2.5 模型迭代训练
 
 ```
-model1 = MLP().to(device)
-optimizer1 = optim.SGD(model1.parameters(), lr=0.1, momentum=0)
-epochs1 = 30
+# 模型迭代训练
+epochs = 30
+train_losses = []
+train_accuracies = []
 
-for epoch in range(epochs1):
-    model1.train()
+print("开始训练...")
+print("---")
+for epoch in range(epochs):
+    model.train()
+    running_loss = 0.0
+    correct = 0
+    total = 0
     for batch_idx, (x, y) in enumerate(train_loader):
         x, y = x.view(x.shape[0], -1).to(device), y.to(device)
-        optimizer1.zero_grad()
-        output = model1(x)
+        optimizer.zero_grad()
+        output = model(x)
         loss = F.cross_entropy(output, y)
         loss.backward()
-        optimizer1.step()
-    print(f"【分支1】Epoch [{epoch+1}/{epochs1}] - Loss: {loss.item():.4f}")
+        optimizer.step()
+
+        running_loss += loss.item()
+        pred = output.max(1, keepdim=True)[1]
+        correct += pred.eq(y.view_as(pred)).sum().item()
+        total += y.size(0)
+
+    avg_loss = running_loss / len(train_loader)
+    accuracy = 100. * correct / total
+
+    train_losses.append(avg_loss)
+    train_accuracies.append(accuracy)
+    print(f"Epoch [{epoch+1:2d}/{epochs}] - Loss: {avg_loss:.4f} - Accuracy: {accuracy:.2f}%")
+print("---")
+print("训练完成!")
+
 ```
+**代码分析**
+- `model.train()`：开启训练模式。
+- `x.view()`：把二维图像张量展平为一维向量，适配全连接输入。
+- `zero_grad()`：清空上一轮迭代的梯度，防止梯度累积。
+- `loss.backward()`：反向传播，自动计算参数梯度。
+- `optimizer.step()`：根据梯度更新网络权重。
 
-**分支训练逻辑分析**
-momentum=0 为原始 SGD，参数更新只依赖当前批次梯度，没有历史梯度惯性。作为基准对照，用来和另外两个分支做横向比较。朴素 SGD 收敛偏慢，损失下降曲线平缓，在梯度很小的平坦区域更新幅度微弱。
-
-### 分支 2：epoch=50，SGD momentum=0
+### 2.6 测试模型
 
 ```
-model2 = MLP().to(device)
+model.eval()
+correct = 0
+test_loss = 0
+y_true = []
+y_pred = []
+
+print("开始测试...")
+with torch.no_grad():
+    for batch_idx, (x, y) in enumerate(test_loader):
+        x, y = x.view(x.shape[0], -1).to(device), y.to(device)
+        output = model(x)
+        test_loss += F.cross_entropy(output, y)
+        pred = output.max(1, keepdim=True)[1]
+        correct += pred.eq(y.view_as(pred)).sum().item()
+        y_true.extend(y.cpu().numpy())
+        y_pred.extend(pred.cpu().numpy())
+
+test_loss = test_loss / (batch_idx + 1)
+acc = 100. * correct / len(test_loader.dataset)
+
+print("---")
+print('测试结果:')
+print(f'测试损失: {test_loss:.4f}')
+print(f'测试准确率: {acc:.2f}%')
+print(f'正确样本数: {correct}/{len(test_loader.dataset)}')
+print("---")
+
+```
+测试结果：
+```
+开始测试...
+---
+测试结果:
+测试损失: 0.2454
+测试准确率: 93.16%
+正确样本数: 9316/10000
+---
+```
+**代码分析**
+- `model.eval()`：切换为评估模式。
+- `torch.no_grad()`：关闭梯度计算，节约显存、加速推理。
+- 循环遍历测试集，统计平均测试损失、测试准确率与正确样本数量。
+
+## 三、实验优化
+### 3.1 增大轮次，其他数据不变
+改变部分代码：
+```
+epochs = 50
+train_losses = []
+train_accuracies = []
+model2 = mlp().to(device)
 optimizer2 = optim.SGD(model2.parameters(), lr=0.1, momentum=0)
-epochs2 = 50
 
-for epoch in range(epochs2):
+print("开始训练...")
+print("---")
+for epoch in range(epochs):
     model2.train()
+    running_loss = 0.0
+    correct = 0
+    total = 0
     for batch_idx, (x, y) in enumerate(train_loader):
         x, y = x.view(x.shape[0], -1).to(device), y.to(device)
         optimizer2.zero_grad()
@@ -130,21 +217,47 @@ for epoch in range(epochs2):
         loss = F.cross_entropy(output, y)
         loss.backward()
         optimizer2.step()
-    print(f"【分支2】Epoch [{epoch+1}/{epochs2}] - Loss: {loss.item():.4f}")
+
+        running_loss += loss.item()
+        pred = output.max(1, keepdim=True)[1]
+        correct += pred.eq(y.view_as(pred)).sum().item()
+        total += y.size(0)
+
+    avg_loss = running_loss / len(train_loader)
+    accuracy = 100. * correct / total
+
+    train_losses.append(avg_loss)
+    train_accuracies.append(accuracy)
+    print(f"Epoch [{epoch+1:2d}/{epochs}] - Loss: {avg_loss:.4f} - Accuracy: {accuracy:.2f}%")
+print("---")
+print("训练完成!")
 ```
-
-**分支训练逻辑分析**
-和分支 1 对比：momentum 保持 0 不变，只增加训练轮次至 50。控制变量为训练轮数，目的探究朴素 SGD 下单纯延长训练周期能否持续提升效果。朴素 SGD 缺少加速机制，进入损失平台后梯度很小，继续训练带来的精度增益有限。
-
-### 分支 3：epoch=30，SGD momentum=0.9
-
+最终测试结果：
 ```
-model3 = MLP().to(device)
+开始测试...
+---
+测试结果:
+测试损失: 0.2065
+测试准确率: 93.97%
+正确样本数: 9397/10000
+---
+```
+### 3.2 增大动量，其他数据不变
+改变部分代码：
+```
+epochs = 30
+train_losses = []
+train_accuracies = []
+model3 = mlp().to(device)
 optimizer3 = optim.SGD(model3.parameters(), lr=0.1, momentum=0.9)
-epochs3 = 30
 
-for epoch in range(epochs3):
+print("开始训练...")
+print("---")
+for epoch in range(epochs):
     model3.train()
+    running_loss = 0.0
+    correct = 0
+    total = 0
     for batch_idx, (x, y) in enumerate(train_loader):
         x, y = x.view(x.shape[0], -1).to(device), y.to(device)
         optimizer3.zero_grad()
@@ -152,40 +265,31 @@ for epoch in range(epochs3):
         loss = F.cross_entropy(output, y)
         loss.backward()
         optimizer3.step()
-    print(f"【分支3】Epoch [{epoch+1}/{epochs3}] - Loss: {loss.item():.4f}")
+
+        running_loss += loss.item()
+        pred = output.max(1, keepdim=True)[1]
+        correct += pred.eq(y.view_as(pred)).sum().item()
+        total += y.size(0)
+
+    avg_loss = running_loss / len(train_loader)
+    accuracy = 100. * correct / total
+
+    train_losses.append(avg_loss)
+    train_accuracies.append(accuracy)
+    print(f"Epoch [{epoch+1:2d}/{epochs}] - Loss: {avg_loss:.4f} - Accuracy: {accuracy:.2f}%")
+print("---")
+print("训练完成!")
 ```
-
-**分支训练逻辑分析**
-和分支 1 对比：epoch 固定 30 不变，仅修改 momentum=0.9。动量会保留历史梯度的更新惯性，梯度方向一致时加速收敛，梯度来回震荡时抑制抖动。同等轮数下，该分支前期损失下降速度明显快于无动量的分支 1；但 lr 偏大时，动量有可能越过最优解，后期出现小幅震荡。
-
-## 四、统一测试评估（三个训练分支训练全部结束后执行）
-
-训练完成后，依次对 model1、model2、model3 在同一个测试集上评估，测试代码复用相同逻辑，保证评估标准一致：
-
+最终测试结果：
 ```
-def test_model(model, tag):
-    model.eval()
-    correct = 0
-    test_loss = 0
-    with torch.no_grad():
-        for batch_idx, (x, y) in enumerate(test_loader):
-            x, y = x.view(x.shape[0], -1).to(device), y.to(device)
-            output = model(x)
-            test_loss += F.cross_entropy(output, y)
-            pred = output.max(1, keepdim=True)[1]
-            correct += pred.eq(y.view_as(pred)).sum().item()
-    test_loss = test_loss / (batch_idx + 1)
-    acc = correct / len(test_loader.dataset)
-    print(f"{tag} 测试结果 - loss:{test_loss:.4f}, acc:{acc:.4f}")
-    return test_loss.item(), acc
-
-loss1, acc1 = test_model(model1, "分支1：30epoch momentum=0")
-loss2, acc2 = test_model(model2, "分支2：50epoch momentum=0")
-loss3, acc3 = test_model(model3, "分支3：30epoch momentum=0.9")
+开始测试...
+---
+测试结果:
+测试损失: 0.0859
+测试准确率: 97.27%
+正确样本数: 9727/10000
+---
 ```
-
-**测试代码分析**
-`model.eval()`切换评估模式；`with torch.no_grad()`关闭梯度图计算，节省显存、加快推理。沿类别维度取最大值索引得到预测标签，统计预测正确样本，计算测试集平均损失与准确率。三组模型使用完全一样的测试流程，保证评估结果具备可比性。
 
 ## 五、实验结果对比与分析
 
